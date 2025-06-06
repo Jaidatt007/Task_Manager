@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Task List with Persistent Checkboxes and Themes</title>
+
+  <!-- Dynamic Theme Styles -->
+  <style id="themeStyle"></style>
+
+  <!-- Base Styles -->
+  <style>
+    /* General Styles */
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 88%;
+      margin: 40px auto;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    h1 {
+      margin: 10px 0;
+      transition: color 0.3s;
+    }
+
+    h4 {
+      margin: 10px 0;
+    }
+
+    table {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      border-radius: 12px;
+    }
+
+    th, td {
+      border-bottom: 1px solid #ddd;
+      border-left: 1px solid #ddd;
+      padding: 14px;
+      text-align: left;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    #taskTable td:first-child,
+    #taskTable th:first-child {
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    tbody tr:hover {
+      background-color: rgba(0, 0, 0, 0.03);
+      transition: background-color 0.2s;
+    }
+
+    input[type="checkbox"] {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #999;
+      border-radius: 4px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+    }
+
+    input[type="checkbox"]:checked {
+      background-color: #4E71FF;
+    }
+
+    input[type="checkbox"]:checked::after {
+      content: "✔";
+      color: #fff;
+      position: absolute;
+      font-size: 14px;
+      left: 3px;
+    }
+
+    /* Floating Bar */
+    .floating-bar {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 12px;
+      z-index: 1100;
+    }
+
+    .floating-bar input[type="text"] {
+      padding: 8px 12px;
+      border: 2px solid #999;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .floating-bar button {
+      padding: 8px 12px;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .floating-bar button:hover {
+      background: #aca737;
+    }
+
+    .floating-bar button:active {
+      transform: scale(0.95);
+    }
+
+    .floating-bar.hide {
+      display: none;
+    }
+
+    /* Side Menu */
+    .side-menu {
+      position: fixed;
+      top: 0;
+      right: -300px;
+      width: 250px;
+      height: 100%;
+      background-color: #fff;
+      box-shadow: -2px 0 12px rgba(0, 0, 0, 0.2);
+      padding: 20px;
+      transition: right 0.3s ease;
+      z-index: 1000;
+      overflow: hidden;
+    }
+
+    .side-menu::-webkit-scrollbar {
+      display: none;
+    }
+
+    .side-menu.open {
+      right: 0;
+    }
+
+    .menu-heading {
+      text-align: center;
+      margin: 10px 0 30px;
+      font-size: 26px;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+    }
+
+    .side-menu h3 {
+      margin: 0 0 12px 0;
+    }
+
+    /* Controls Layout */
+    .controls-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 30px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .content-size-box,
+    .heading-size-box {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+      flex-wrap: nowrap;
+      margin-bottom: 20px;
+    }
+
+    /* Middle Box */
+    .middle-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: stretch;
+      gap: 6px;
+      padding: 8px;
+      border-radius: 8px;
+    }
+
+    .middle-box span {
+      font-size: 14px;
+      text-align: center;
+    }
+
+    /* A+, A-, H+, H- Buttons */
+    .size-adjust-button {
+      flex: 0 0 auto;
+      width: 50px;
+      height: 80px;
+      padding: 0;
+      font-size: 18px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #4E71FF;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .size-adjust-button:hover {
+      background-color: #355edc;
+    }
+
+    .size-adjust-button:active {
+      transform: scale(0.96);
+    }
+
+    /* Reset Button */
+    .reset-button {
+      width: 100%;
+      padding: 10px 0;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      background-color: #4E71FF;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .reset-button:hover {
+      background-color: #355edc;
+    }
+
+    .reset-button:active {
+      transform: scale(0.96);
+    }
+
+    /* Theme Buttons */
+    .theme-buttons {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .theme-btn {
+      width: 30px;
+      height: 30px;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .theme-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .theme-btn.active {
+      border: 3px solid #82b3ba;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Highlight Text */
+    .highlight {
+      background-color: #fcf37c;
+      padding: 0 2px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="floating-bar">
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Search..."
+      oninput="highlightSearch()"
+    />
+    <button class="menu-button" onclick="toggleMenu()">☰</button>
+  </div>
+
+  <div class="side-menu" id="sideMenu">
+
+    <h2 class="menu-heading">Controls</h2>
+
+    <h3>Theme</h3>
+    <div class="theme-buttons">
+      <button
+        class="theme-btn"
+        style="background: #4E71FF; box-shadow: 0 4px 8px rgba(78, 113, 255, 0.4); border-radius: 12px; padding: 10px 16px; color: white; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 80px; height: 80px;"
+        onclick="switchTheme(1)"
+        id="theme-1"
+      >
+        <span style="font-size: 24px; line-height: 1;">🤍</span>
+        <span style="font-size: 14px; line-height: 1.2; margin-top: 4px; font-weight: 600;">Light</span>
+      </button>
+
+      <button
+        class="theme-btn"
+        style="background: #C14600; box-shadow: 0 4px 8px rgba(193, 70, 0, 0.4); border-radius: 12px; padding: 10px 16px; color: white; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 80px; height: 80px;"
+        onclick="switchTheme(2)"
+        id="theme-2"
+      >
+        <span style="font-size: 24px; line-height: 1;">🔥</span>
+        <span style="font-size: 14px; line-height: 1.2; margin-top: 4px; font-weight: 600;">Warm</span>
+      </button>
+
+      <button
+        class="theme-btn"
+        style="background: #00ADB5; box-shadow: 0 4px 8px rgba(0, 173, 181, 0.4); border-radius: 12px; padding: 10px 16px; color: white; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 80px; height: 80px;"
+        onclick="switchTheme(3)"
+        id="theme-3"
+      >
+        <span style="font-size: 24px; line-height: 1;">💀</span>
+        <span style="font-size: 14px; line-height: 1.2; margin-top: 4px; font-weight: 600;">Dark</span>
+      </button>
+    </div>
+
+    <h3>Content Size</h3>
+    <div class="content-size-box">
+      <button class="size-adjust-button" onclick="adjustContentSize(-2)">A -</button>
+        <div class="middle-box">
+          <span>Text : <span id="contentSizeLabel">18</span>px</span>
+          <button class="reset-button" onclick="resetContentSize()">Reset</button>
+        </div>
+      <button class="size-adjust-button" onclick="adjustContentSize(2)">A +</button>
+    </div>
+
+  <h3>Heading Size</h3>
+    <div class="heading-size-box">
+      <button class="size-adjust-button" onclick="adjustHeadingSize(-2)">H -</button>
+        <div class="middle-box">
+          <span>Heading : <span id="headingSizeLabel">32</span>px</span>
+          <button class="reset-button" onclick="resetHeadingSize()">Reset</button>
+        </div>
+      <button class="size-adjust-button" onclick="adjustHeadingSize(2)">H +</button>
+    </div>
+  </div>
+
+  <!-- Page Content -->
+  <h1>Task Manager : JD</h1>
+  <h4 id="summary">Selected: 0 / 0</h4>
+
+  <!-- Task table -->
+  <table id="taskTable">
+    <thead>
+      <tr id="tableHeaderRow">
+        <th style="width: 40px">
+          All<br>
+          <input type="checkbox" id="selectAll" />
+        </th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+
+  <!-- Script Section -->
+  <script>
+
+
+
+
+
+
+
+    // Task data array
+    const tasks = [
+      { Marks: 9, Question: "What are the future trends in cloud computing?", TopicNoName: "6.1 Future Trends", Freq: 1 },
+      { Marks: 9, Question: "Explain Mobile Cloud in detail?", TopicNoName: "6.2 Mobile Cloud", Freq: 1 },
+      { Marks: 9, Question: "Explain Multimedia Cloud?", TopicNoName: "6.4 Multimedia Cloud", Freq: 1 },
+      { Marks: 9, Question: "Discuss Energy Aware Cloud Computing?", TopicNoName: "6.5 Energy Aware CC", Freq: 2 },
+      { Marks: 9, Question: "Discuss Energy Aware Cloud Computing?", TopicNoName: "6.5 Energy Aware CC", Freq: 2 }
+    ];
+
+
+
+
+
+
+
+    // Theme CSS styles stored as strings
+    const themes = {
+      1: `body { background-color: #BBFBFF; color: #1A1A1A; }
+          h1 { color: #4E71FF; }
+          table { border-collapse: collapse; width: 100%; background-color: #E6FCFF; border: 2px solid #8DD8FF; }
+          thead { background-color: #4E71FF; }
+          th { background-color: #4E71FF; color: #FFFFFF; padding: 12px; }
+          tr { background-color: #E6FCFF; border-bottom: 1px solid #8DD8FF; }
+          td { background-color: #E6FCFF; color: #1A1A1A; padding: 12px; font-size: inherit; }
+          input[type="checkbox"] { accent-color: #4E71FF; }
+          .menu-button {
+            background-color: #4E71FF;
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 16px;
+            font-size: 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+          }
+          .menu-button:hover {
+            background-color: #365AD5;
+          }
+          .side-menu {
+            background-color: #E6FCFF;
+          }
+          .menu-heading {
+            color: #4E71FF;
+            border-bottom: 1px solid #8DD8FF;
+          }
+          .middle-box {
+            background-color: #D0F6FF;
+          }
+          .side-menu button {
+            background-color: #4E71FF;
+            color: #fff;
+          }
+          .side-menu button:hover {
+            background-color: #355edc;
+          }`,
+
+      2: `body { background-color: #FEF9E1; color: #1A1A1A; }
+          h1 { color: #C14600; }
+          table { border-collapse: collapse; width: 100%; background-color: #FAEDCA; border: 2px solid #E5D0AC; }
+          thead { background-color: #C14600; }
+          th { background-color: #C14600; color: #FFF; padding: 12px; }
+          tr { background-color: #E5D0AC; border-bottom: 1px solid #D4B48A; }
+          td { background-color: #E5D0AC; color: #1A1A1A; padding: 12px; font-size: inherit; }
+          input[type="checkbox"] { accent-color: #C14600; }
+          .menu-button {
+            background-color: #C14600;
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 16px;
+            font-size: 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+          }
+          .menu-button:hover {
+            background-color: #9F3900;
+          }
+          .side-menu {
+            background-color: #FAEDCA;
+          }
+          .menu-heading {
+            color: #C14600;
+            border-bottom: 1px solid #D4B48A;
+          }
+          .middle-box {
+            background-color: #F0E2C3;
+          }
+          .side-menu button {
+            background-color: #C14600;
+            color: #fff;
+          }
+          .side-menu button:hover {
+            background-color: #9F3900;
+          }`,
+
+      3: `body { background-color: #000; color: #EEE; }
+          h1 { color: #00ADB5; }
+          table { border-collapse: collapse; width: 100%; background-color: #111418; border: 2px solid #333; }
+          thead { background-color: #00ADB5; }
+          th { background-color: #00ADB5; color: #333; padding: 12px; }
+          tr { background-color: #111418; border-bottom: 1px solid #333; }
+          td { background-color: #111418; color: #EEE; padding: 12px; font-size: inherit; }
+          input[type="checkbox"] { accent-color: #00ADB5; }
+          .menu-button {
+            background-color: #00ADB5;
+            color: #111418;
+            border: none;
+            padding: 10px 16px;
+            font-size: 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+          }
+          .menu-button:hover {
+            background-color: #008A90;
+          }
+          .side-menu {
+            background-color: #111418;
+          }
+          .menu-heading {
+            color: #00ADB5;
+            border-bottom: 1px solid #333;
+          }
+          .middle-box {
+            background-color: #1A1F25;
+          }
+          .side-menu button {
+            background-color: #00ADB5;
+            color: #111418;
+          }
+          .side-menu button:hover {
+            background-color: #008A90;
+          }`
+    };
+
+    // DOM element references
+    const tbody = document.querySelector("#taskTable tbody");
+    const theadRow = document.querySelector("#tableHeaderRow");
+    const summary = document.getElementById("summary");
+    const selectAllCheckbox = document.getElementById("selectAll");
+    const contentSizeLabel = document.getElementById("contentSizeLabel");
+    const headingSizeLabel = document.getElementById("headingSizeLabel");
+
+    // Get keys from the first task object to create table headers
+    const keys = Object.keys(tasks[0]);
+
+    // Generate table headers dynamically
+    keys.forEach(key => {
+      const th = document.createElement("th");
+      th.textContent = key;
+      theadRow.appendChild(th);
+    });
+
+    // Load saved checkbox states from localStorage
+    let savedStates = JSON.parse(localStorage.getItem("taskStates") || "{}");
+
+    // Populate the table rows with tasks and checkbox states
+    tasks.forEach((task, index) => {
+      const tr = document.createElement("tr");
+
+      // Checkbox column
+      const tdCheckbox = document.createElement("td");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = savedStates[index] || false;
+      checkbox.addEventListener("change", saveStates);
+      tdCheckbox.appendChild(checkbox);
+      tr.appendChild(tdCheckbox);
+
+      // Data columns for each task property
+      keys.forEach(key => {
+        const td = document.createElement("td");
+        td.textContent = task[key];
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+
+    // Save checkbox states to localStorage and update summary
+    function saveStates() {
+      const checkboxes = tbody.querySelectorAll('input[type="checkbox"]');
+      const states = {};
+      checkboxes.forEach((cb, idx) => (states[idx] = cb.checked));
+      localStorage.setItem("taskStates", JSON.stringify(states));
+      updateSummary();
+    }
+
+    // Select all checkboxes logic
+    selectAllCheckbox.addEventListener("change", () => {
+      const checkboxes = tbody.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach(cb => (cb.checked = selectAllCheckbox.checked));
+      saveStates();
+    });
+
+    // Update summary text and select all checkbox state
+    function updateSummary() {
+      const checkboxes = tbody.querySelectorAll('input[type="checkbox"]');
+      const selected = [...checkboxes].filter(cb => cb.checked).length;
+      summary.textContent = `Selected: ${selected} / ${checkboxes.length}`;
+      selectAllCheckbox.checked = selected === checkboxes.length;
+    }
+
+    // Apply theme CSS and update UI states
+    function switchTheme(themeNumber) {
+      document.getElementById("themeStyle").innerHTML = themes[themeNumber];
+      localStorage.setItem("selectedTheme", themeNumber);
+      document.querySelectorAll(".theme-btn").forEach(btn => btn.classList.remove("active"));
+      document.getElementById(`theme-${themeNumber}`).classList.add("active");
+      applyThemeStylesToExtras(themeNumber);
+    }
+
+    // Apply additional theme styles to floating bar and side menu
+    function applyThemeStylesToExtras(themeNumber) {
+      const searchInput = document.getElementById("searchInput");
+      const sideMenu = document.getElementById("sideMenu");
+
+      if (themeNumber == 1) {
+        searchInput.style.background = "#fff";
+        searchInput.style.color = "#1A1A1A";
+        sideMenu.style.background = "#E6FCFF";
+        sideMenu.style.color = "#1A1A1A";
+      } else if (themeNumber == 2) {
+        searchInput.style.background = "#FFF7D0";
+        searchInput.style.color = "#1A1A1A";
+        sideMenu.style.background = "#E5D0AC";
+        sideMenu.style.color = "#1A1A1A";
+      } else if (themeNumber == 3) {
+        searchInput.style.background = "#222";
+        searchInput.style.color = "#EEE";
+        sideMenu.style.background = "#111418";
+        sideMenu.style.color = "#EEE";
+      }
+    }
+
+    // Apply saved theme on page load
+    function applySavedTheme() {
+      const selected = localStorage.getItem("selectedTheme") || 1;
+      switchTheme(selected);
+    }
+
+    // Adjust font size of table content cells
+    function adjustContentSize(change) {
+      let size = parseFloat(localStorage.getItem("contentFontSize")) || 18;
+      size = Math.max(10, size + change);
+      document.querySelectorAll("th, td").forEach(el => (el.style.fontSize = size + "px"));
+      localStorage.setItem("contentFontSize", size);
+      contentSizeLabel.textContent = size;
+    }
+
+    // Reset table content font size to default
+    function resetContentSize() {
+      document.querySelectorAll("th, td").forEach(el => (el.style.fontSize = "18px"));
+      localStorage.setItem("contentFontSize", 18);
+      contentSizeLabel.textContent = 18;
+    }
+
+    // Adjust font size of heading (h1)
+    function adjustHeadingSize(change) {
+      let size = parseFloat(localStorage.getItem("headingFontSize")) || 32;
+      size = Math.max(14, size + change);
+      document.querySelectorAll("h1").forEach(el => (el.style.fontSize = size + "px"));
+      localStorage.setItem("headingFontSize", size);
+      headingSizeLabel.textContent = size;
+    }
+
+    // Reset heading font size to default
+    function resetHeadingSize() {
+      document.querySelectorAll("h1").forEach(el => (el.style.fontSize = "32px"));
+      localStorage.setItem("headingFontSize", 32);
+      headingSizeLabel.textContent = 32;
+    }
+
+    // Apply saved font sizes on page load
+    function applySavedSizes() {
+      adjustContentSize(0);
+      adjustHeadingSize(0);
+    }
+
+    // Highlight search matches in table cells
+    function highlightSearch() {
+      const searchValue = document.getElementById("searchInput").value.trim().toLowerCase();
+      const rows = tbody.querySelectorAll("tr");
+
+      rows.forEach(row => {
+        row.querySelectorAll("td").forEach(cell => {
+          // Skip checkbox column
+          if (cell.querySelector("input")) return;
+
+          const originalText = cell.textContent;
+          const regex = new RegExp(`(${searchValue})`, "gi");
+
+          if (searchValue && originalText.toLowerCase().includes(searchValue)) {
+            const newHTML = originalText.replace(regex, '<span class="highlight">$1</span>');
+            cell.innerHTML = newHTML;
+          } else {
+            cell.innerHTML = originalText;
+          }
+        });
+      });
+    }
+
+    // Toggle side menu open/close and floating bar visibility
+    function toggleMenu() {
+      const menu = document.getElementById("sideMenu");
+      const bar = document.querySelector(".floating-bar");
+      menu.classList.toggle("open");
+
+      if (menu.classList.contains("open")) {
+        bar.classList.add("hide");
+      } else {
+        bar.classList.remove("hide");
+      }
+    }
+
+    // Close side menu on outside click and restore floating bar
+    window.addEventListener("click", function (event) {
+      const menu = document.getElementById("sideMenu");
+      const bar = document.querySelector(".floating-bar");
+
+      if (
+        menu.classList.contains("open") &&
+        !menu.contains(event.target) &&
+        !event.target.closest(".floating-bar")
+      ) {
+        menu.classList.remove("open");
+        bar.classList.remove("hide");
+      }
+    });
+
+    // Initial setup
+    applySavedTheme();
+    applySavedSizes();
+    updateSummary();
+  </script>
+
+</body>
+</html>
