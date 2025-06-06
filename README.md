@@ -93,7 +93,7 @@ A modern and responsive Task Manager local web interface built with HTML, CSS, a
    ]
    ```
 3. Replace the default JSON in the HTML file with your new one.
-4. Open `index.html` — you're ready to go!
+4. Open `TaskManager.html` — you're ready to go!
 
 ---
 
