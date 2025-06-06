@@ -38,27 +38,27 @@ A modern and responsive Task Manager local web interface built with HTML, CSS, a
 <div style="display: flex; overflow-x: auto; gap: 20px; padding: 10px 0;">
 
   <div style="min-width: 300px; text-align: center;">
-    <img src="./snapshots/theme_light.png" alt="Light Mode" width="300"/>
+    <img src="./snapshot/theme_light.png" alt="Light Mode" width="300"/>
     <p>🤍 Light Mode</p>
   </div>
 
   <div style="min-width: 300px; text-align: center;">
-    <img src="./snapshots/theme_warm.png" alt="Warm Mode" width="300"/>
+    <img src="./snapshot/theme_warm.png" alt="Warm Mode" width="300"/>
     <p>🔥 Warm Mode</p>
   </div>
 
   <div style="min-width: 300px; text-align: center;">
-    <img src="./snapshots/theme_dark.png" alt="Dark Mode" width="300"/>
+    <img src="./snapshot/theme_dark.png" alt="Dark Mode" width="300"/>
     <p>💀 Dark Mode</p>
   </div>
 
 </div>
 
 ### 🔍 Search in Action
-![Search](./snapshots/search_action.png)
+![Search](./snapshot/search_action.png)
 
 ### 🎛️ Slider Controls
-![Search](./snapshots/slider_controls.png)
+![Search](./snapshot/slider_controls.png)
 
 ---
 
