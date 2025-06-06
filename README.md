@@ -71,6 +71,32 @@ A modern and responsive Task Manager local web interface built with HTML, CSS, a
 
 ---
 
+---
+
+## 🛠 How to Use
+
+1. Prepare your task/question list.
+2. Ask ChatGPT to convert it into this JSON format:
+   ```json
+   [
+     {
+       "key1": value1,
+       "key2": value2,
+       ...
+     },
+     {
+       "key1": value3,
+       "key2": value4,
+       ...
+     }
+     ...
+   ]
+   ```
+3. Replace the default JSON in the HTML file with your new one.
+4. Open `index.html` — you're ready to go!
+
+---
+
 ## 🚀 Getting Started
 
 1. Clone the repository:
